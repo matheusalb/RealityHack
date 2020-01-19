@@ -19,6 +19,9 @@ public class AstraSource : ISource
 
     private Color[] depthTextureBuffer;
 
+    private Texture2D rgbTexture;
+    private Texture2D depthTexture;
+
     private Vector2Int rgbRes;
     private Vector2Int depthRes;
     private int numberOfBodies;
@@ -31,6 +34,9 @@ public class AstraSource : ISource
         rgbData = new byte[rgbRes.x * rgbRes.y];
         depthData = new short[depthRes.x * depthRes.y];
         depthTextureBuffer = new Color[depthRes.x * depthRes.y];
+
+        rgbTexture = new Texture2D(rgbRes.x, rgbRes.y, TextureFormat.RGB24, false);
+        depthTexture = new Texture2D(depthRes.x, depthRes.y);
 
         numberOfBodies = bodyCount;
         astraBodies = new Astra.Body[numberOfBodies];
@@ -260,13 +266,12 @@ public class AstraSource : ISource
             short[] buffer = new short[depthRes.x * depthRes.y];
             frame.CopyData(ref depthData);
 
-            var texture = new Texture2D(depthRes.x, depthRes.y);
-            EnsureBuffers(texture, depthData);
-            MapDepthToTexture(depthData, texture);
+            EnsureBuffers(depthTexture, depthData);
+            MapDepthToTexture(depthData, depthTexture);
 
             foreach (var receiver in DepthReceivers)
             {
-                receiver.ReceiveData(texture);
+                receiver.ReceiveData(depthTexture);
             }
         }
     }
@@ -291,12 +296,11 @@ public class AstraSource : ISource
 
             frame.CopyData(ref rgbData);
 
-            var texture = new Texture2D(rgbRes.x, rgbRes.y, TextureFormat.RGB24, false);
-            texture.LoadRawTextureData(rgbData);
+            rgbTexture.LoadRawTextureData(rgbData);
 
             foreach (var receiver in RgbReceivers)
             {
-                receiver.ReceiveData(texture);
+                receiver.ReceiveData(rgbTexture);
             }
         }
     }

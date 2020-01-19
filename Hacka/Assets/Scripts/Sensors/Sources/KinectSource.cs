@@ -15,6 +15,9 @@ public class KinectSource : ISource
 
     private Color[] depthTextureBuffer;
 
+    private Texture2D rgbTexture;
+    private Texture2D depthTexture;
+
     private Vector2Int rgbRes;
     private Vector2Int depthRes;
     private int numberOfBodies;
@@ -34,6 +37,9 @@ public class KinectSource : ISource
 
         // kinectBodies = new Astra.Body[numberOfBodies];
         // kinectBodies = new Kinect.Body[numberOfBodies];
+
+        rgbTexture = new Texture2D(rgbRes.x, rgbRes.y, TextureFormat.RGBA32, false);
+        depthTexture = new Texture2D(depthRes.x, depthRes.y);
 
         RgbReceivers = new List<IImageReceiver<Texture2D>>();
         DepthReceivers = new List<IImageReceiver<Texture2D>>();
@@ -230,13 +236,12 @@ public class KinectSource : ISource
         {
             frame.CopyFrameDataToArray(depthData);
 
-            var texture = new Texture2D(depthRes.x, depthRes.y);
-            EnsureBuffers(texture, depthData);
-            MapDepthToTexture(depthData, texture);
+            EnsureBuffers(depthTexture, depthData);
+            MapDepthToTexture(depthData, depthTexture);
 
             foreach (var receiver in DepthReceivers)
             {
-                receiver.ReceiveData(texture);
+                receiver.ReceiveData(depthTexture);
             }
         }
     }
@@ -249,12 +254,11 @@ public class KinectSource : ISource
         {
             frame.CopyConvertedFrameDataToArray(rgbData, Kinect.ColorImageFormat.Rgba);
 
-            var texture = new Texture2D(rgbRes.x, rgbRes.y, TextureFormat.RGBA32, false);
-            texture.LoadRawTextureData(rgbData);
+            rgbTexture.LoadRawTextureData(rgbData);
 
             foreach (var receiver in RgbReceivers)
             {
-                receiver.ReceiveData(texture);
+                receiver.ReceiveData(rgbTexture);
             }
         }
     }
